@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">DialMediaRoute</string>
+    <string name="dial_media_route_provider_service">Dial</string>
+</resources>
