@@ -15,9 +15,12 @@ import android.util.Log;
 import com.entertailion.android.dial.BroadcastAdvertisement;
 import com.entertailion.android.dial.BroadcastDiscoveryClient;
 import com.entertailion.android.dial.DialServer;
+import com.entertailion.android.dial.TrackedDialServers;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -29,6 +32,7 @@ public class DialMediaRouteProvider extends MediaRouteProvider {
     private final Handler mainHandler;
 //    private final Runnable scanRunnable;
     private Thread getServerDetailsThread;
+    private final TrackedDialServers trackedDialServers;
 
 
     public DialMediaRouteProvider(Context context) {
@@ -89,15 +93,26 @@ public class DialMediaRouteProvider extends MediaRouteProvider {
         }
 //        worker.scheduleAtFixedRate(scanRunnable, 0, 60, TimeUnit.SECONDS);
 //        worker.schedule(scanRunnable, 5, TimeUnit.SECONDS);
+        trackedDialServers = new TrackedDialServers();
     }
 
     private void addRoute(DialServer dialServer) {
+        trackedDialServers.add(dialServer);
+
         IntentFilter filter = new IntentFilter();
         filter.addCategory(CATEGORY);
         filter.addAction(MediaControlIntent.ACTION_PLAY);
         filter.addAction(MediaControlIntent.ACTION_PAUSE);
-        MediaRouteDescriptor descriptor = new MediaRouteDescriptor.Builder(dialServer.getUuid(), dialServer.getFriendlyName()).addControlFilter(filter).build();
-        MediaRouteProviderDescriptor providerDescriptor = new MediaRouteProviderDescriptor.Builder().addRoute(descriptor).build();
+
+        Iterator<DialServer> iterator = trackedDialServers.iterator();
+        ArrayList<MediaRouteDescriptor> mediaRoutes = new ArrayList<MediaRouteDescriptor>();
+        while (iterator.hasNext()) {
+            DialServer ds = iterator.next();
+            MediaRouteDescriptor descriptor = new MediaRouteDescriptor.Builder(ds.getUuid(), ds.getFriendlyName()).addControlFilter(filter).build();
+            mediaRoutes.add(descriptor);
+        }
+
+        MediaRouteProviderDescriptor providerDescriptor = new MediaRouteProviderDescriptor.Builder().addRoutes(mediaRoutes).build();
         setDescriptor(providerDescriptor);
         Log.d(TAG, "Setting routes  " + providerDescriptor.toString());
     }
@@ -112,7 +127,9 @@ public class DialMediaRouteProvider extends MediaRouteProvider {
     @Override
     public RouteController onCreateRouteController(String routeId) {
         Log.d(TAG, "onCreateRouteController " + routeId);
-        return new DialRouteController(routeId);
+        DialServer dialServer = trackedDialServers.findDialServer(routeId);
+
+        return new DialRouteController(dialServer);
     }
 
 }

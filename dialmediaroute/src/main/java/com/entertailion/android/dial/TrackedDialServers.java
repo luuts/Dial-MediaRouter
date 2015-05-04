@@ -41,7 +41,7 @@ public class TrackedDialServers implements Iterable<DialServer> {
 		}
 	};
 
-	TrackedDialServers() {
+	public TrackedDialServers() {
 		serversByAddress = new HashMap<InetAddress, DialServer>();
 		servers = new TreeSet<DialServer>(COMPARATOR);
 	}
@@ -89,6 +89,15 @@ public class TrackedDialServers implements Iterable<DialServer> {
 			}
 		}
 		return byIp;
+	}
+
+	public DialServer findDialServer(String UUID) {
+		for (DialServer server : servers) {
+			if (server.getUuid().equals(UUID)) {
+				return server;
+			}
+		}
+		return null;
 	}
 
 	public TrackedDialServers clone() {
