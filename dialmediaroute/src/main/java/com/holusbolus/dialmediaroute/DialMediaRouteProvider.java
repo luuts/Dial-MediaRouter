@@ -119,7 +119,8 @@ public class DialMediaRouteProvider extends MediaRouteProvider {
 
     @Override
     public void onDiscoveryRequestChanged(MediaRouteDiscoveryRequest request) {
-        Log.d(TAG, "onDiscoverRequestChanged " + request.toString());
+
+        Log.d(TAG, "onDiscoverRequestChanged " + (request != null ? request.toString() : "- no request"));
         super.onDiscoveryRequestChanged(request);
     }
 
