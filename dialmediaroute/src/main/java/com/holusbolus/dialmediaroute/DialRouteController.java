@@ -5,9 +5,7 @@ import android.util.Log;
 
 import com.entertailion.android.dial.DialServer;
 
-/**
- * Created by Stuart on 01/05/15.
- */
+
 public class DialRouteController extends MediaRouteProvider.RouteController {
     private static final String TAG = DialRouteController.class.getSimpleName();
     private DialServer dialServer;

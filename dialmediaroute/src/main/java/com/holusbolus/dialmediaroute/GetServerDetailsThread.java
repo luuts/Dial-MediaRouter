@@ -17,9 +17,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-/**
- * Created by Stuart on 02/05/15.
- */
+
 class GetServerDetailsThread extends Thread {
     private static final String HEADER_APPLICATION_URL = "Application-URL";
     public static final int DIAL_SERVER_FOUND = 249;
