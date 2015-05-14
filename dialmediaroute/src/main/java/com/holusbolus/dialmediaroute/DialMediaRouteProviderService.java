@@ -6,7 +6,7 @@ import android.util.Log;
 
 
 public class DialMediaRouteProviderService extends MediaRouteProviderService {
-    private static final String TAG = MediaRouteProviderService.class.getSimpleName();
+    private static final String TAG = DialMediaRouteProviderService.class.getSimpleName();
 
     @Override
     public MediaRouteProvider onCreateMediaRouteProvider() {

@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
         mMediaRouter = MediaRouter.getInstance(this);
 
         mSelector = new MediaRouteSelector.Builder()
-                .addControlCategory(DialMediaRouteProvider.CATEGORY)
+                .addControlCategory(DialMediaRouteProvider.CATEGORY + "/" + "uk.co.bbc.iPlayer")
                 .build();
     }
 

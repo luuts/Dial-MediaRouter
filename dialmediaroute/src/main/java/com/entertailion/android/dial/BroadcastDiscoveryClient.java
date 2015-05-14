@@ -193,7 +193,7 @@ public class BroadcastDiscoveryClient implements Runnable {
 	private void handleResponsePacket(DatagramPacket packet) {
 		try {
 			String strPacket = new String(packet.getData(), 0, packet.getLength());
-			Log.d(LOG_TAG, "response=" + strPacket);
+//			Log.d(LOG_TAG, "response=" + strPacket);
 			String tokens[] = strPacket.trim().split("\\n");
 
 			String location = null;

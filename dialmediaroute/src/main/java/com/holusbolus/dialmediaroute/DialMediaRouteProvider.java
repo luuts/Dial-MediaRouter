@@ -21,6 +21,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -33,6 +34,9 @@ public class DialMediaRouteProvider extends MediaRouteProvider {
 //    private final Runnable scanRunnable;
     private Thread getServerDetailsThread;
     private final TrackedDialServers trackedDialServers;
+    private String appName;
+    private boolean shouldSearch;
+    private BroadcastDiscoveryClient broadcastClient;
 
 
     public DialMediaRouteProvider(Context context) {
@@ -80,17 +84,7 @@ public class DialMediaRouteProvider extends MediaRouteProvider {
 //            }
 //        };
 
-        try {
-            InetAddress broadcastAddress = InetAddress.getByName("239.255.255.250");
-            BroadcastDiscoveryClient broadcastClient = new BroadcastDiscoveryClient(broadcastAddress, mainHandler);
-            Thread broadcastClientThread = new Thread(broadcastClient);
-            broadcastClientThread.start();
 
-        } catch (RuntimeException e) {
-            Log.e(TAG, "startBroadcast", e);
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
 //        worker.scheduleAtFixedRate(scanRunnable, 0, 60, TimeUnit.SECONDS);
 //        worker.schedule(scanRunnable, 5, TimeUnit.SECONDS);
         trackedDialServers = new TrackedDialServers();
@@ -100,7 +94,7 @@ public class DialMediaRouteProvider extends MediaRouteProvider {
         trackedDialServers.add(dialServer);
 
         IntentFilter filter = new IntentFilter();
-        filter.addCategory(CATEGORY);
+        filter.addCategory(category(appName));
         filter.addAction(MediaControlIntent.ACTION_PLAY);
         filter.addAction(MediaControlIntent.ACTION_PAUSE);
 
@@ -119,9 +113,47 @@ public class DialMediaRouteProvider extends MediaRouteProvider {
 
     @Override
     public void onDiscoveryRequestChanged(MediaRouteDiscoveryRequest request) {
-
         Log.d(TAG, "onDiscoverRequestChanged " + (request != null ? request.toString() : "- no request"));
+        //TODO: add several categories for each appName found
+        boolean requestIsDial = false;
+        if (request != null) {
+            List<String> categories = request.getSelector().getControlCategories();
+            for (String category : categories) {
+                int indexOfCategory = category.indexOf(CATEGORY);
+                if (indexOfCategory >= 0) {
+                    requestIsDial = true;
+                    int startIndex = indexOfCategory + CATEGORY.length() + 1;
+                    appName = category.substring(startIndex);
+                    break;
+                }
+            }
+        }
+        shouldSearch = requestIsDial;
+        if (shouldSearch) {
+            try {
+                stopSearch();
+                InetAddress broadcastAddress = InetAddress.getByName("239.255.255.250");
+                broadcastClient = new BroadcastDiscoveryClient(broadcastAddress, mainHandler);
+                Thread broadcastClientThread = new Thread(broadcastClient);
+                broadcastClientThread.start();
+
+            } catch (RuntimeException e) {
+                Log.e(TAG, "startBroadcast", e);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            stopSearch();
+        }
         super.onDiscoveryRequestChanged(request);
+    }
+
+    private void stopSearch() {
+        if (broadcastClient != null) {
+            broadcastClient.stop();
+            broadcastClient = null;
+        }
     }
 
     @Nullable
@@ -131,6 +163,10 @@ public class DialMediaRouteProvider extends MediaRouteProvider {
         DialServer dialServer = trackedDialServers.findDialServer(routeId);
 
         return new DialRouteController(dialServer);
+    }
+
+    public static String category(String appName) {
+        return CATEGORY + "/"+appName;
     }
 
 }
